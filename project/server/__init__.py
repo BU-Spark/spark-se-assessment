@@ -15,7 +15,7 @@ if os.environ.get('FLASK_COVERAGE'):
     COV.start()
 
 import click
-from flask import Flask
+from flask import Flask, make_response, jsonify #ADDED make_response and jsonify and blueprints
 from flask_bcrypt import Bcrypt
 from flask_sqlalchemy import SQLAlchemy
 from flask_migrate import Migrate
@@ -34,12 +34,15 @@ db = SQLAlchemy(app)
 from project.server.models import User
 migrate = Migrate(app, db)
 
+
 @app.route("/")
 def root_site():
     return "<p>It works!</p>"
 
 from project.server.auth.views import auth_blueprint
 app.register_blueprint(auth_blueprint)
+from project.server.auth.views import users_blueprint
+app.register_blueprint(users_blueprint)
 
 @app.cli.command()
 @click.option('--coverage/--no-coverage', default=False,

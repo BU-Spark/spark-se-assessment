@@ -4,7 +4,8 @@ from flask.views import MethodView
 from project.server import bcrypt, db
 from project.server.models import User
 
-auth_blueprint = Blueprint('auth', __name__)
+auth_blueprint = Blueprint('auth', __name__) 
+users_blueprint = Blueprint('users', __name__) #ADDED
 
 class RegisterAPI(MethodView):
     """
@@ -29,7 +30,7 @@ class RegisterAPI(MethodView):
                     email=post_data.get('email'),
                     password=post_data.get('password')
                 )
-
+                
                 # insert the user
                 db.session.add(user)
                 db.session.commit()
@@ -38,7 +39,7 @@ class RegisterAPI(MethodView):
                 responseObject = {
                     'status': 'success',
                     'message': 'Successfully registered.',
-                    'auth_token': auth_token.decode()
+                    'auth_token': auth_token
                 }
                 return make_response(jsonify(responseObject)), 201
             except Exception as e:
@@ -54,7 +55,6 @@ class RegisterAPI(MethodView):
             }
             return make_response(jsonify(responseObject)), 202
 
-
 # define the API resources
 registration_view = RegisterAPI.as_view('register_api')
 
@@ -64,3 +64,31 @@ auth_blueprint.add_url_rule(
     view_func=registration_view,
     methods=['POST', 'GET']
 )
+
+class ViewAPI(MethodView):
+    """
+    Viewing User Resource
+    """
+    def get(self):
+        users = User.query.all()
+        responseObject = []
+        #copies each entry in the User table onto responseObject 
+        temp = {}
+        for user in users:
+            temp['admin'] = user.admin
+            temp['email'] = user.email
+            temp['id'] = user.id
+            temp['registered_on'] = user.registered_on
+            temp2 = temp.copy() #shallow copy of dictionary 
+            responseObject.append(temp2)
+        return make_response(jsonify(responseObject)), 201
+
+#define API resources
+users_view = ViewAPI.as_view('view_api')
+
+users_blueprint.add_url_rule(
+    '/users/index',
+    view_func=users_view,
+    methods=['GET']
+)
+
